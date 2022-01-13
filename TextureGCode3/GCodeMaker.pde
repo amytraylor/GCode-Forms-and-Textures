@@ -65,7 +65,8 @@ class GCodeMaker {
     gCommand(";_______________________________//");
   }
 
-  void printParameters(float radius, float radInc, float layerHeight, int layers, int numPtsPerLayer) {
+  void printParameters(String imgName, float radius, float radInc, float layerHeight, int layers, int numPtsPerLayer) {
+    gCommand(";image name " + imgName);
     gCommand(";radius " + radius);
     gCommand(";radInc " + radInc);
     gCommand(";layerHeight " + layerHeight);
@@ -124,14 +125,29 @@ class GCodeMaker {
     if (mode==0) {
       gCommand("G91"); //Relative mode
       gCommand("G1 E-4 F3000"); //Retract filament to avoid filament drop on last layer
-      gCommand("G1 X0 Y100 Z20"); //Facilitate object removal
+      gCommand("G1 Z50"); //Facilitate object removal
       gCommand("G1 E4"); //Restore filament position
       gCommand("M 107"); //Turn fans off
+      /*
+      M107
+; Filament-specific end gcode
+G4 ; wait
+M221 S100 ; reset flow
+M900 K0 ; reset LA
+M104 S0 ; turn off temperature
+M140 S0 ; turn off heatbed
+M107 ; turn off fan
+G1 Z177.8 ; Move print head up
+G1 X0 Y200 F3000 ; home X axis
+M84 ; disable motors
+M73 P100 R0
+M73 Q100 S0
+*/
     } else {
       gCommand("M83");
       gCommand("G91"); //Relative mode
       gCommand("G1 Z150 E-4000 F66666"); //Retract clay
-      gCommand("G1 X0 Y100 Z200"); //Facilitate object removal
+      gCommand("G1 X50 Y100 Z100"); //Facilitate object removal
       gCommand("G90");
       gCommand("G28");
     }
@@ -153,7 +169,7 @@ class GCodeMaker {
   }
 
   float extrudeClay(PVector p1, PVector p2) {
-    float points_distance = dist(p1.x, p1.y, p2.x, p2.y);
+    float points_distance = dist(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
     //float extrude_rate=3;//mm per mm travelled
     return points_distance*extrudeRate;
   }
